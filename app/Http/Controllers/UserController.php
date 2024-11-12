@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use function Symfony\Component\Clock\now;
 
 class UserController extends Controller
 {
@@ -15,7 +16,8 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::join('departments', 'users.department_id', '=', 'departments.id')
+        $users = User::where("users.id","!=","1")
+            ->join('departments', 'users.department_id', '=', 'departments.id')
             ->join('users_status', 'users.status_id', '=', 'users_status.id')
             ->select('users.*', 'departments.name as department', 'users_status.name as status')
             ->get();
@@ -139,6 +141,15 @@ class UserController extends Controller
                 "department_id.required" => "Chưa Chọn Phòng Ban",
             ]
         );
+
+        User::find($id)->update([
+            "status_id" => $request["status_id"],
+            "username" => $request["username"],
+            "name" => $request["name"],
+            "email" => $request["email"],
+            "department_id" => $request["department_id"]
+        ]);
+
         if($request["change_password"] == true)
         {
             $validated = $request->validate(
@@ -150,6 +161,15 @@ class UserController extends Controller
                     "password.confirmed" => "Mật Khẩu Không Khớp"
                 ]
             );
+            User::find($id)->update([
+                "password" => \Hash::make($request["password"]),
+                "change_password_at" => now()
+            ]);
         }
+    }
+
+    public function destroy($id)
+    {
+        User::find($id)->delete();
     }
 }

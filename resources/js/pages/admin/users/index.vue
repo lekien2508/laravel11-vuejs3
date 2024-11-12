@@ -25,10 +25,14 @@
 
                         <template v-if="column.key == 'action'">
                             <router-link :to="{name: 'admin-users-edit', params:{id:record.id}}">
-                                <a-button type="primary">
+                                <a-button type="primary" class="me-sm-2 mb-2">
                                     <font-awesome-icon :icon="['far', 'pen-to-square']" />
                                 </a-button>
                             </router-link>
+
+                                <a-button type="primary" danger @click="deleteUsers(record.id)">
+                                    <font-awesome-icon :icon="['far', 'trash-can']" />
+                                </a-button>
                         </template>
                     </template>
                 </a-table>
@@ -38,8 +42,11 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { ref, createVNode } from 'vue';
     import { useMenu } from '../../../store/use-menu.js';
+    import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+    import { Modal, message } from 'ant-design-vue';
+    import axios from 'axios';
 
     const store = useMenu();
     store.onSelectedKeys(["admin-users"]);
@@ -99,6 +106,29 @@
                 // handle error
                 console.log(error);
             })
+    }
+
+    const deleteUsers = (id) => {
+        Modal.confirm({
+            title: 'Bạn có chắc chắn muốn xóa không?',
+            icon: createVNode(ExclamationCircleOutlined),
+            content: 'Click Ok để xóa, Click Cancel để hủy',
+            onOk() {
+                axios
+                    .delete(`http://127.0.0.1:8000/api/users/${id}`)
+                    .then((response) => {
+                        if(response.status == 200){
+                            message.success("Xóa tài khoản thành công");
+                            getUsers();
+                        }
+                    })
+                    .catch((error) => {
+
+                    });
+            },
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            onCancel() {},
+        });
     }
 
     // const getUsers2 = async () => {

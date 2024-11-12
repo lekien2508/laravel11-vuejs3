@@ -228,6 +228,7 @@
     import { useRoute } from "vue-router";
     import { message } from "ant-design-vue";
     import { useMenu } from '../../../store/use-menu.js';
+    import dayjs from "dayjs";
     import axios from "axios";
     export default defineComponent({
         setup() {
@@ -257,14 +258,18 @@
                 axios
                     .get(`http://127.0.0.1:8000/api/users/${route.params.id}/edit`)
                     .then((response) => {
-                        console.log(response);
+                        // console.log(response);
                         users.username = response.data.users.username;
                         users.name = response.data.users.name;
                         users.email = response.data.users.email;
                         users.department_id = response.data.users.department_id;
                         users.status_id = response.data.users.status_id;
-                        response.data.users.login_at ? users.login_at = response.data.users.login_at : users.login_at = "Chưa có lượt đăng nhập";
-                        response.data.users.change_password_at? users.change_password_at = response.data.users.change_password_at : users.change_password_at ="Chưa đổi mật khẩu lần nào";
+                        response.data.users.login_at
+                        ? users.login_at = dayjs(response.data.users.login_at).format('DD/MM/YYYY - HH:mm')
+                        : users.login_at = "Chưa có lượt đăng nhập";
+                        response.data.users.change_password_at
+                        ? users.change_password_at = dayjs(response.data.users.change_password_at).format('DD/MM/YYYY - HH:mm')
+                        : users.change_password_at ="Chưa đổi mật khẩu lần nào";
                         users_status.value = response.data.users_status;
                         departments.value = response.data.departments
                     })
@@ -277,7 +282,11 @@
                 axios
                     .put(`http://127.0.0.1:8000/api/users/${route.params.id}`, users)
                     .then((response) => {
-
+                        // console.log(response);
+                        if(response.status == 200){
+                            message.success("Cập nhật thành công ");
+                            router.push({name: "admin-users"});
+                        }
                     })
                     .catch((error) => {
                         errors.value = error.response.data.errors;
